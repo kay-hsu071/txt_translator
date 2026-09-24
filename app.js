@@ -9,7 +9,7 @@
 // 若要更改密碼，在瀏覽器 Console 執行：
 //   getPasswordHash('你的新密碼')
 // 然後把產生的字串取代下面 CORRECT_HASH 的值
-const CORRECT_HASH = 'd9ab56f8cf8c147c4f8614a056836e8e80b8dbaa51200472cb5161509f21dcc8';
+const CORRECT_HASH = '95833e2a637b28c739888684719407d5be67524aba2087dba1c3ad75d28946b8';
 const AUTH_KEY = 'app_auth_until';    // localStorage key
 const AUTH_DAYS = 30;                 // 記住登入幾天
 
