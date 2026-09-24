@@ -1,0 +1,45 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+# 允許 Actions 寫入 Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時只跑一個部署，新的 push 會取消舊的
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 從 Secret 產生 config.js
+        run: |
+          echo "const CORRECT_HASH = '${{ secrets.CORRECT_HASH }}';" > config.js
+          echo "const AUTH_KEY = 'app_auth_until';" >> config.js
+          echo "const AUTH_DAYS = 30;" >> config.js
+
+      - name: 設定 Pages
+        uses: actions/configure-pages@v4
+
+      - name: 上傳網站檔案
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
