@@ -167,8 +167,9 @@ async function startCamera() {
     document.getElementById('camera-placeholder').style.display = 'none';
     document.getElementById('capture-btn').disabled = false;
     document.getElementById('camera-btn-text').textContent = '關閉相機';
+    document.body.classList.add('camera-fullscreen');
     cameraActive = true;
-    showToast('相機已開啟');
+    showToast('對準文字，按 📸 拍照');
   } catch (err) {
     console.error('Camera error:', err);
     showToast('❌ 無法開啟相機：' + (err.message || err.name));
@@ -186,6 +187,7 @@ function stopCamera() {
   document.getElementById('camera-placeholder').style.display = 'flex';
   document.getElementById('capture-btn').disabled = true;
   document.getElementById('camera-btn-text').textContent = '開啟相機';
+  document.body.classList.remove('camera-fullscreen');
   cameraActive = false;
 }
 
@@ -199,7 +201,10 @@ function captureAndProcess() {
   ctx.drawImage(video, 0, 0);
 
   const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-  capturedImageBase64 = imageDataUrl.split(',')[1]; // strip prefix
+  capturedImageBase64 = imageDataUrl.split(',')[1];
+
+  // 退出全螢幕，顯示預覽和結果
+  document.body.classList.remove('camera-fullscreen');
 
   // Show preview
   const previewImg = document.getElementById('preview-img');
