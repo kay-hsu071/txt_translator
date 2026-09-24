@@ -6,7 +6,6 @@
 'use strict';
 
 // ---------- Password Config ----------
-// 預設密碼：scan2024
 // 若要更改密碼，在瀏覽器 Console 執行：
 //   getPasswordHash('你的新密碼')
 // 然後把產生的字串取代下面 CORRECT_HASH 的值
