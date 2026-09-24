@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a73e8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>英文掃描朗讀翻譯</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-icon">📖</div>
+      <h1>英文掃描朗讀</h1>
+      <p class="header-sub">拍攝英文書本，自動朗讀並翻譯成中文</p>
+    </header>
+
+    <!-- Password Panel -->
+    <div id="password-panel" class="panel password-panel hidden">
+      <div class="lock-icon">🔒</div>
+      <h2>請輸入密碼</h2>
+      <p class="setup-desc">輸入密碼後即可使用 App</p>
+      <div class="input-group">
+        <label for="password-input">密碼</label>
+        <input type="password" id="password-input" placeholder="輸入密碼..."
+               autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') verifyPassword()" />
+        <button class="btn-icon" onclick="togglePasswordVisibility()">👁️</button>
+      </div>
+      <div id="password-error" class="password-error hidden">❌ 密碼錯誤，請再試一次</div>
+      <button class="btn-primary" onclick="verifyPassword()">進入 App</button>
+    </div>
+
+    <!-- Setup Panel (shown if no API keys) -->
+    <div id="setup-panel" class="panel setup-panel hidden">
+      <h2>⚙️ 設定 API 金鑰</h2>
+      <p class="setup-desc">請輸入 Google Cloud API 金鑰（需開啟 Vision、Translate、Text-to-Speech API）</p>
+      <div class="input-group">
+        <label for="api-key-input">Google Cloud API Key</label>
+        <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off" />
+        <button class="btn-icon" id="toggle-key-btn" onclick="toggleKeyVisibility()">👁️</button>
+      </div>
+      <p class="hint">
+        <a href="https://console.cloud.google.com/apis/credentials" target="_blank">如何取得 API Key？</a>
+        · 金鑰只儲存在你的瀏覽器本地，不會傳送到其他地方。
+      </p>
+      <button class="btn-primary" onclick="saveApiKey()">儲存並開始使用</button>
+    </div>
+
+    <!-- Main Panel -->
+    <div id="main-panel" class="panel hidden">
+      <!-- Camera Section -->
+      <div class="camera-section">
+        <div class="camera-wrapper" id="camera-wrapper">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="overlay-canvas"></canvas>
+          <div class="camera-placeholder" id="camera-placeholder">
+            <div class="placeholder-icon">📷</div>
+            <p>點擊下方按鈕開啟相機</p>
+          </div>
+        </div>
+        <div class="camera-controls">
+          <button class="btn-camera" id="camera-btn" onclick="toggleCamera()">
+            <span class="btn-camera-icon">📷</span>
+            <span id="camera-btn-text">開啟相機</span>
+          </button>
+          <button class="btn-capture" id="capture-btn" onclick="captureAndProcess()" disabled>
+            <span>📸 拍照辨識</span>
+          </button>
+          <button class="btn-upload" onclick="document.getElementById('file-input').click()">
+            <span>🖼️ 選圖片</span>
+          </button>
+        </div>
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" onchange="handleFileUpload(event)" />
+      </div>
+
+      <!-- Preview Image -->
+      <div class="preview-section hidden" id="preview-section">
+        <h3>📷 擷取的畫面</h3>
+        <img id="preview-img" alt="預覽圖片" />
+      </div>
+
+      <!-- Processing Indicator -->
+      <div class="processing-section hidden" id="processing-section">
+        <div class="spinner"></div>
+        <p id="processing-text">正在辨識文字...</p>
+      </div>
+
+      <!-- Results Section -->
+      <div class="results-section hidden" id="results-section">
+        <!-- English Result -->
+        <div class="result-card english-card">
+          <div class="result-header">
+            <span class="result-lang">🇺🇸 英文原文</span>
+            <div class="result-actions">
+              <button class="btn-action" onclick="speakText('en', 'english-text')" title="朗讀英文">
+                🔊 朗讀
+              </button>
+              <button class="btn-action" onclick="copyText('english-text')" title="複製">
+                📋 複製
+              </button>
+            </div>
+          </div>
+          <div class="result-text" id="english-text"></div>
+        </div>
+
+        <!-- Chinese Result -->
+        <div class="result-card chinese-card">
+          <div class="result-header">
+            <span class="result-lang">🇹🇼 中文翻譯</span>
+            <div class="result-actions">
+              <button class="btn-action" onclick="speakText('zh', 'chinese-text')" title="朗讀中文">
+                🔊 朗讀
+              </button>
+              <button class="btn-action" onclick="copyText('chinese-text')" title="複製">
+                📋 複製
+              </button>
+            </div>
+          </div>
+          <div class="result-text" id="chinese-text"></div>
+        </div>
+
+        <!-- Auto Read Controls -->
+        <div class="read-controls">
+          <button class="btn-read-all" id="read-all-btn" onclick="readAll()">
+            🔊 自動朗讀（英文→中文）
+          </button>
+          <button class="btn-stop" id="stop-btn" onclick="stopReading()" style="display:none">
+            ⏹️ 停止朗讀
+          </button>
+        </div>
+
+        <!-- Speed & Volume Controls -->
+        <div class="audio-controls">
+          <label>朗讀速度
+            <input type="range" id="speed-slider" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed(this.value)" />
+            <span id="speed-value">1.0x</span>
+          </label>
+        </div>
+
+        <!-- Scan Again -->
+        <button class="btn-secondary" onclick="resetScan()">🔄 重新掃描</button>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Settings Button -->
+    <button class="settings-btn" onclick="openSettings()" title="設定">⚙️</button>
+  </div>
+
+  <!-- Hidden canvas for capturing -->
+  <canvas id="capture-canvas" style="display:none"></canvas>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "英文掃描朗讀翻譯",
+  "short_name": "英文掃描",
+  "description": "掃描英文書本，自動朗讀並翻譯成中文",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#1a73e8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "utilities"],
+  "lang": "zh-TW"
+}
